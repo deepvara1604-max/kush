@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackEthics — Ethical Hacking</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020806;
+    --surface: #060f0a;
+    --green: #00ff88;
+    --green-dim: #00cc66;
+    --green-dark: #003322;
+    --cyan: #00ffe0;
+    --red: #ff2244;
+    --text: #b8ffda;
+    --text-dim: #4d8866;
+    --border: #0a2a1a;
+    --glow: 0 0 20px #00ff8844, 0 0 40px #00ff8822;
+    --glow-strong: 0 0 10px #00ff88, 0 0 30px #00ff8866, 0 0 60px #00ff8833;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--green);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s, border-color 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-dot {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    background: var(--green);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,136,0.015) 2px, rgba(0,255,136,0.015) 4px);
+    pointer-events: none;
+    z-index: 9000;
+  }
+
+  /* Matrix canvas */
+  #matrix-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px;
+    height: 70px;
+    background: rgba(2,8,6,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--green);
+    text-shadow: var(--glow);
+    letter-spacing: 4px;
+  }
+  .nav-logo span { color: var(--red); }
+
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.3s, text-shadow 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 1px;
+    background: var(--green);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+    transform-origin: left;
+  }
+  .nav-links a:hover { color: var(--green); text-shadow: var(--glow); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 60px 60px;
+    z-index: 1;
+    text-align: center;
+    flex-direction: column;
+  }
+
+  .hero-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    border: 1px solid var(--green-dark);
+    padding: 8px 24px;
+    margin-bottom: 40px;
+    position: relative;
+    animation: fadeUp 0.8s ease both;
+  }
+  .hero-badge::before, .hero-badge::after {
+    content: '//';
+    margin: 0 12px;
+    opacity: 0.5;
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    margin-bottom: 30px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+  .hero-title .line1 { display: block; color: var(--green); text-shadow: var(--glow-strong); }
+  .hero-title .line2 { display: block; color: var(--text); font-size: 60%; letter-spacing: 8px; margin-top: 12px; }
+
+  .hero-sub {
+    max-width: 600px;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 50px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 20px;
+    animation: fadeUp 0.8s 0.6s ease both;
+  }
+
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+  }
+  .btn-primary {
+    background: var(--green);
+    color: var(--bg);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-primary:hover {
+    background: var(--cyan);
+    box-shadow: 0 0 30px var(--green), 0 0 60px var(--green-dim);
+    transform: translateY(-2px);
+  }
+  .btn-outline {
+    border: 1px solid var(--green-dark);
+    color: var(--green);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-outline:hover {
+    border-color: var(--green);
+    box-shadow: var(--glow);
+    background: rgba(0,255,136,0.05);
+    transform: translateY(-2px);
+  }
+
+  /* TICKER / REEL */
+  .reel-section {
+    position: relative;
+    z-index: 1;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,255,136,0.02);
+    overflow: hidden;
+  }
+
+  .reel-track {
+    display: flex;
+    gap: 0;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+  }
+  .reel-track:hover { animation-play-state: paused; }
+
+  .reel-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 40px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .reel-item .dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: var(--glow);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .reel-item .tag {
+    background: rgba(0,255,136,0.08);
+    border: 1px solid var(--green-dark);
+    color: var(--green);
+    padding: 2px 12px;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* SECTIONS */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 70px;
+  }
+  .section-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--green);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 2px;
+  }
+  .section-title span { color: var(--green); }
+  .section-line {
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    margin: 20px auto 0;
+  }
+
+  /* TOPICS */
+  .topics {
+    padding: 100px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2px;
+  }
+
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 40px;
+    position: relative;
+    transition: all 0.4s;
+    overflow: hidden;
+    cursor: none;
+  }
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,255,136,0.03) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .topic-card::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--green);
+    transform: scaleY(0);
+    transition: transform 0.4s;
+    transform-origin: top;
+    box-shadow: var(--glow);
+  }
+  .topic-card:hover { border-color: rgba(0,255,136,0.2); transform: translateY(-4px); }
+  .topic-card:hover::before { opacity: 1; }
+  .topic-card:hover::after { transform: scaleY(1); }
+
+  .topic-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+  }
+  .topic-icon {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    filter: grayscale(0.5);
+  }
+  .topic-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .topic-desc {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  .topic-tag {
+    display: inline-block;
+    margin-top: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--green);
+    border: 1px solid var(--green-dark);
+    padding: 4px 12px;
+    letter-spacing: 2px;
+  }
+
+  /* STATS */
+  .stats {
+    padding: 80px 60px;
+    background: linear-gradient(180deg, transparent, rgba(0,255,136,0.02), transparent);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 2px;
+  }
+  .stat-item {
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: all 0.3s;
+  }
+  .stat-item:hover { border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.03); }
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 900;
+    color: var(--green);
+    text-shadow: var(--glow);
+    display: block;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* TOOLS */
+  .tools {
+    padding: 100px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .tools-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .tool-pill {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-pill::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--green);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+  }
+  .tool-pill:hover { border-color: rgba(0,255,136,0.2); color: var(--green); background: rgba(0,255,136,0.03); }
+  .tool-pill:hover::before { transform: scaleY(1); }
+  .tool-pill .t-icon { font-size: 1.1rem; }
+
+  /* PHASES */
+  .phases {
+    padding: 100px 60px;
+    background: rgba(0,255,136,0.01);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .phases-inner { max-width: 900px; margin: 0 auto; }
+  .phase-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 30px;
+    align-items: start;
+    margin-bottom: 2px;
+  }
+  .phase-num-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .phase-num {
+    width: 60px; height: 60px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--green);
+    font-weight: 700;
+  }
+  .phase-line {
+    width: 1px;
+    flex: 1;
+    min-height: 40px;
+    background: linear-gradient(180deg, var(--green-dark), transparent);
+    margin-top: 4px;
+  }
+  .phase-content {
+    padding: 16px 30px 50px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: all 0.3s;
+  }
+  .phase-content:hover { border-color: rgba(0,255,136,0.2); }
+  .phase-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .phase-desc {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* CONTACT */
+  .contact {
+    padding: 100px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  .contact-info h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    color: var(--green);
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+  }
+  .contact-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: border-color 0.3s;
+  }
+  .contact-line:hover { border-color: rgba(0,255,136,0.2); }
+  .contact-line .cl-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .contact-line .cl-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .contact-line .cl-value {
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .contact-form { display: flex; flex-direction: column; gap: 16px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .form-input, .form-textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    padding: 14px 18px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    resize: none;
+    width: 100%;
+  }
+  .form-input:focus, .form-textarea:focus {
+    border-color: var(--green-dim);
+    box-shadow: 0 0 0 1px rgba(0,255,136,0.1), var(--glow);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
+  .form-textarea { height: 130px; }
+
+  .form-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 16px 32px;
+    background: var(--green);
+    color: var(--bg);
+    border: none;
+    cursor: none;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: all 0.3s;
+    font-weight: 700;
+  }
+  .form-btn:hover {
+    background: var(--cyan);
+    box-shadow: var(--glow-strong);
+    transform: translateY(-2px);
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 60px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--green);
+    letter-spacing: 4px;
+    text-shadow: var(--glow);
+  }
+  .footer-logo span { color: var(--red); }
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 2px;
+    transition: color 0.3s;
+  }
+  .footer-links a:hover { color: var(--green); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .typed-cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1em;
+    background: var(--green);
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 4px;
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 100px 24px 60px; }
+    .topics, .tools, .phases, .contact { padding: 60px 24px; }
+    .stats { padding: 60px 24px; }
+    .stats-inner { grid-template-columns: repeat(2, 1fr); }
+    .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+    footer { flex-direction: column; gap: 20px; text-align: center; }
+    .hero-cta { flex-direction: column; align-items: center; }
+    .topics-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursor-dot"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">HACK<span>.</span>ETHICS</div>
+  <ul class="nav-links">
+    <li><a href="#topics">Topics</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#phases">Phases</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Authorized // Responsible // Legal</div>
+  <h1 class="hero-title">
+    <span class="line1" id="typed-text"></span>
+    <span class="line2">Ethical Hacking</span>
+  </h1>
+  <p class="hero-sub">
+    Master the art of offensive security. Learn penetration testing, vulnerability assessment, and ethical exploitation techniques used by professional security researchers.
+  </p>
+  <div class="hero-cta">
+    <a href="#topics" class="btn btn-primary">Explore Topics</a>
+    <a href="#contact" class="btn btn-outline">Contact Us</a>
+  </div>
+</section>
+
+<!-- LIVE REEL -->
+<div class="reel-section">
+  <div class="reel-track" id="reel-track">
+    <!-- JS fills this -->
+  </div>
+</div>
+
+<!-- TOPICS -->
+<section class="topics" id="topics">
+  <div class="section-header reveal">
+    <div class="section-tag">// Knowledge Base</div>
+    <h2 class="section-title">Core <span>Topics</span></h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="topics-grid">
+    <div class="topic-card reveal">
+      <div class="topic-number">01 / RECON</div>
+      <div class="topic-icon">🕵️</div>
+      <div class="topic-name">Reconnaissance</div>
+      <div class="topic-desc">Passive and active information gathering using OSINT, Shodan, WHOIS, DNS enumeration, and social engineering frameworks.</div>
+      <span class="topic-tag">OSINT · DNS · WHOIS</span>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-number">02 / SCAN</div>
+      <div class="topic-icon">📡</div>
+      <div class="topic-name">Network Scanning</div>
+      <div class="topic-desc">Port scanning, service fingerprinting, OS detection, and network topology mapping using Nmap, Masscan, and Zenmap.</div>
+      <span class="topic-tag">NMAP · TCP/IP · PORTS</span>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-number">03 / VULN</div>
+      <div class="topic-icon">🔍</div>
+      <div class="topic-name">Vulnerability Analysis</div>
+      <div class="topic-desc">Identifying and classifying security weaknesses using CVE databases, Nessus, OpenVAS, and manual analysis techniques.</div>
+      <span class="topic-tag">CVE · CVSS · NESSUS</span>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-number">04 / EXPLOIT</div>
+      <div class="topic-icon">⚡</div>
+      <div class="topic-name">Exploitation</div>
+      <div class="topic-desc">Leveraging vulnerabilities using Metasploit Framework, custom exploits, buffer overflows, and privilege escalation techniques.</div>
+      <span class="topic-tag">METASPLOIT · RCE · PE</span>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-number">05 / WEB</div>
+      <div class="topic-icon">🌐</div>
+      <div class="topic-name">Web App Hacking</div>
+      <div class="topic-desc">SQL injection, XSS, CSRF, SSRF, XXE, IDOR, and OWASP Top 10 vulnerabilities with Burp Suite and OWASP ZAP.</div>
+      <span class="topic-tag">OWASP · BURP · SQLi</span>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-number">06 / CRYPTO</div>
+      <div class="topic-icon">🔐</div>
+      <div class="topic-name">Cryptography</div>
+      <div class="topic-desc">Encryption algorithms, hash cracking, PKI infrastructure, SSL/TLS weaknesses, and cryptanalysis methodology.</div>
+      <span class="topic-tag">AES · RSA · HASHING</span>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <span class="stat-num" data-target="500">0</span>
+      <span class="stat-label">CVEs Analyzed</span>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num" data-target="120">0</span>
+      <span class="stat-label">Labs Available</span>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num" data-target="47">0</span>
+      <span class="stat-label">Tools Covered</span>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num" data-target="98">0</span>
+      <span class="stat-label">% Ethical</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<section class="tools" id="tools">
+  <div class="section-header reveal">
+    <div class="section-tag">// Arsenal</div>
+    <h2 class="section-title">Hacker <span>Toolkit</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="tools-list">
+    <div class="tool-pill reveal"><span class="t-icon">🗺️</span> Nmap</div>
+    <div class="tool-pill reveal"><span class="t-icon">💣</span> Metasploit</div>
+    <div class="tool-pill reveal"><span class="t-icon">🕷️</span> Burp Suite</div>
+    <div class="tool-pill reveal"><span class="t-icon">🔐</span> Hashcat</div>
+    <div class="tool-pill reveal"><span class="t-icon">📡</span> Wireshark</div>
+    <div class="tool-pill reveal"><span class="t-icon">🐉</span> Kali Linux</div>
+    <div class="tool-pill reveal"><span class="t-icon">✈️</span> Aircrack-ng</div>
+    <div class="tool-pill reveal"><span class="t-icon">🕵️</span> Maltego</div>
+    <div class="tool-pill reveal"><span class="t-icon">📊</span> OpenVAS</div>
+    <div class="tool-pill reveal"><span class="t-icon">🌊</span> Hydra</div>
+    <div class="tool-pill reveal"><span class="t-icon">🔎</span> Gobuster</div>
+    <div class="tool-pill reveal"><span class="t-icon">🧩</span> SQLmap</div>
+  </div>
+</section>
+
+<!-- PHASES -->
+<section class="phases" id="phases">
+  <div class="section-header reveal">
+    <div class="section-tag">// Methodology</div>
+    <h2 class="section-title">Pentest <span>Phases</span></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="phases-inner">
+    <div class="phase-row">
+      <div class="phase-num-wrap">
+        <div class="phase-num">01</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="phase-content reveal">
+        <div class="phase-name">Planning & Reconnaissance</div>
+        <div class="phase-desc">Define scope, rules of engagement, and gather intelligence about the target without active probing. OSINT, footprinting, and passive recon.</div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-num-wrap">
+        <div class="phase-num">02</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="phase-content reveal">
+        <div class="phase-name">Scanning & Enumeration</div>
+        <div class="phase-desc">Actively probe the target for open ports, live hosts, services, OS, and potential attack vectors using automated and manual techniques.</div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-num-wrap">
+        <div class="phase-num">03</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="phase-content reveal">
+        <div class="phase-name">Gaining Access</div>
+        <div class="phase-desc">Exploit discovered vulnerabilities to gain a foothold. This may involve web exploits, network attacks, or social engineering within authorized scope.</div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-num-wrap">
+        <div class="phase-num">04</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="phase-content reveal">
+        <div class="phase-name">Maintaining Access & Post-Exploitation</div>
+        <div class="phase-desc">Simulate persistence mechanisms, lateral movement, and privilege escalation to understand the full impact of a real breach scenario.</div>
+      </div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-num-wrap">
+        <div class="phase-num">05</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="phase-content reveal">
+        <div class="phase-name">Reporting & Remediation</div>
+        <div class="phase-desc">Document findings, proof-of-concepts, risk ratings, and actionable remediation steps in a comprehensive penetration testing report.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="section-header reveal">
+    <div class="section-tag">// Get In Touch</div>
+    <h2 class="section-title">Contact <span>Us</span></h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="contact-grid">
+    <div class="contact-info reveal">
+      <h3>DEVRSHYA VARA</h3>
+      <div class="contact-line">
+        <span class="cl-icon">👤</span>
+        <div>
+          <div class="cl-label">Security Researcher</div>
+          <div class="cl-value">Ethical Hacking Specialist</div>
+        </div>
+      </div>
+      <div class="contact-line">
+        <span class="cl-icon">📧</span>
+        <div>
+          <div class="cl-label">Email</div>
+          <div class="cl-value">devrshyavara@hackethics.io</div>
+        </div>
+      </div>
+      <div class="contact-line">
+        <span class="cl-icon">📍</span>
+        <div>
+          <div class="cl-label">Location</div>
+          <div class="cl-value">Ahmedabad, Gujarat, India</div>
+        </div>
+      </div>
+      <div class="contact-line">
+        <span class="cl-icon">🏆</span>
+        <div>
+          <div class="cl-label">Certifications</div>
+          <div class="cl-value">CEH · OSCP · CompTIA Sec+</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-form reveal">
+      <div class="form-group">
+        <label class="form-label">// Name</label>
+        <input type="text" class="form-input" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">// Email</label>
+        <input type="email" class="form-input" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">// Subject</label>
+        <input type="text" class="form-input" placeholder="Pentest inquiry, training, etc.">
+      </div>
+      <div class="form-group">
+        <label class="form-label">// Message</label>
+        <textarea class="form-textarea" placeholder="Describe your security needs..."></textarea>
+      </div>
+      <button class="form-btn" onclick="handleFormSubmit()">[ SEND MESSAGE ]</button>
+      <div id="form-status" style="font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--green);margin-top:10px;height:20px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">HACK<span>.</span>ETHICS</div>
+  <div class="footer-copy">© 2026 DEVRSHYA VARA · All rights reserved · Authorized use only</div>
+  <div class="footer-links">
+    <a href="#topics">Topics</a>
+    <a href="#tools">Tools</a>
+    <a href="#contact">Contact</a>
+  </div>
+</footer>
+
+<script>
+// --- Custom cursor ---
+const cursor = document.getElementById('cursor');
+const cursorDot = document.getElementById('cursor-dot');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX - 8 + 'px';
+  cursor.style.top = e.clientY - 8 + 'px';
+  cursorDot.style.left = e.clientX - 2 + 'px';
+  cursorDot.style.top = e.clientY - 2 + 'px';
+});
+document.querySelectorAll('a, button, .topic-card, .tool-pill').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(2)'; cursor.style.borderColor = 'var(--cyan)'; });
+  el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; cursor.style.borderColor = 'var(--green)'; });
+});
+
+// --- Matrix canvas ---
+const canvas = document.getElementById('matrix-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, drops;
+const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ!@#$%^&*ABCDEF';
+
+function initMatrix() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  const cols = Math.floor(W / 18);
+  drops = Array(cols).fill(1);
+}
+initMatrix();
+window.addEventListener('resize', initMatrix);
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(2,8,6,0.05)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#00ff88';
+  ctx.font = '13px Share Tech Mono';
+  drops.forEach((y, i) => {
+    const char = chars[Math.floor(Math.random() * chars.length)];
+    ctx.fillText(char, i * 18, y * 18);
+    if (y * 18 > H && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}
+setInterval(drawMatrix, 55);
+
+// --- Typed text ---
+const words = ['HACK.', 'SECURE.', 'DEFEND.', 'EXPLOIT.'];
+let wordIdx = 0, charIdx = 0, deleting = false;
+const typedEl = document.getElementById('typed-text');
+
+function type() {
+  const word = words[wordIdx];
+  if (!deleting) {
+    typedEl.textContent = word.slice(0, charIdx + 1);
+    charIdx++;
+    if (charIdx === word.length) { deleting = true; setTimeout(type, 1800); return; }
+  } else {
+    typedEl.textContent = word.slice(0, charIdx - 1);
+    charIdx--;
+    if (charIdx === 0) { deleting = false; wordIdx = (wordIdx + 1) % words.length; }
+  }
+  setTimeout(type, deleting ? 60 : 100);
+}
+type();
+
+// --- Reel ---
+const reelItems = [
+  { label: 'CEH Certified', tag: 'ACTIVE' },
+  { label: 'SQL Injection Attack', tag: 'DEMO' },
+  { label: 'Kali Linux 2024', tag: 'UPDATE' },
+  { label: 'CVE-2024-1234 Patched', tag: 'ALERT' },
+  { label: 'Metasploit v6.4', tag: 'TOOL' },
+  { label: 'Zero-Day Research', tag: 'LAB' },
+  { label: 'OSCP Preparation', tag: 'COURSE' },
+  { label: 'Bug Bounty Tips', tag: 'GUIDE' },
+  { label: 'Network Forensics', tag: 'MODULE' },
+  { label: 'Privilege Escalation', tag: 'TOPIC' },
+  { label: 'Phishing Simulation', tag: 'LAB' },
+  { label: 'OWASP Top 10 2024', tag: 'REF' },
+];
+
+function buildReel() {
+  const track = document.getElementById('reel-track');
+  const doubled = [...reelItems, ...reelItems];
+  track.innerHTML = doubled.map(item => `
+    <div class="reel-item">
+      <span class="dot"></span>
+      ${item.label}
+      <span class="tag">${item.tag}</span>
+    </div>
+  `).join('');
+}
+buildReel();
+
+// --- Scroll reveal ---
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// --- Counter animation ---
+function animateCounter(el, target) {
+  let current = 0;
+  const step = Math.ceil(target / 60);
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current + (el.dataset.target == 98 ? '%' : '+');
+    if (current >= target) clearInterval(timer);
+  }, 25);
+}
+
+const statObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const nums = e.target.querySelectorAll('.stat-num');
+      nums.forEach(n => animateCounter(n, parseInt(n.dataset.target)));
+      statObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stats-inner').forEach(el => statObserver.observe(el));
+
+// --- Form submit ---
+function handleFormSubmit() {
+  const status = document.getElementById('form-status');
+  status.textContent = '> Encrypting message...';
+  setTimeout(() => { status.textContent = '> Establishing secure channel...'; }, 700);
+  setTimeout(() => { status.textContent = '> Message sent to DEVRSHYA VARA ✓'; }, 1600);
+  setTimeout(() => { status.textContent = ''; }, 4000);
+}
+</script>
+</body>
+</html>
